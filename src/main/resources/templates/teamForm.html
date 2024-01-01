@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+
+  <meta charset="UTF-8">
+  <title>팀 정보 입력</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+<input type="text" id="searchInput" placeholder="팀명 검색...">
+<button type="button" id="toggleButton">팀 목록 보기/숨기기</button>
+
+
+
+<script>
+  $(document).ready(function() {
+    // 검색 기능
+    $('#searchInput').on('keyup', function() {
+      var value = $(this).val().toLowerCase();
+      $('#teamList label').filter(function() {
+        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+      });
+    });
+
+    // 토글 버튼 기능
+    $('#toggleButton').click(function() {
+      $('#teamList').toggle();
+    });
+  });
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<form action="#" th:action="@{/team}" th:object="${teamForm}" method="post">
+
+  <div id="teamList">
+    <label class="toggle-item" th:each="team : ${teamNames}">
+      <input type="radio" th:name="teamName" th:value="${team}" th:text="${team}"> Team
+    </label>
+  </div>
+
+
+  <div th:each="i, iterStat : ${#numbers.sequence(0, 2)}">
+    <label th:for="${'memberName' + iterStat.index}">팀원 핸들:</label>
+    <input type="text" th:id="${'memberName' + iterStat.index}" th:field="*{memberNames[__${iterStat.index}__]}" />
+  </div>
+
+  <button type="submit">제출</button>
+
+  <p>R-squared (R<sup>2</sup>): <span th:text="${rSquared}">0.85</span></p>
+  <p>preliminary R-squared (R<sup>2</sup>): <span th:text="${pre_rSquared}">0.85</span></p>
+  <h1>Team Ratings and Rankings</h1>
+  <div>
+    <canvas id="teamsChart"></canvas>
+  </div>
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    const teamsData = [[${points}]];
+    const slope = [[${slope}]];
+    const intercept = [[${intercept}]];
+
+    // 차트 데이터 생성
+    const data = {
+      datasets: [{
+        label: 'teams',
+        data: teamsData.map(point => ({x: point.first , y: point.second})),
+        backgroundColor: 'blue'
+      }]
+    };
+
+    // 선형 회귀선 데이터 추가
+    const maxX = Math.max(...data.datasets[0].data.map(d => d.x));
+    data.datasets.push({
+      label: 'Regression Line',
+      data: [{
+        x: 0,
+        y: intercept
+      }, {
+        x: maxX,
+        y: maxX * slope + intercept
+      }],
+      type: 'line',
+      borderColor: 'red',
+      borderWidth: 2,
+      fill: false
+    });
+
+    // 차트 생성
+    const ctx = document.getElementById('teamsChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'scatter',
+      data: data,
+      options: {
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Rank'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Rating'
+            }
+          }
+        }
+      }
+    });
+    /*]]>*/
+  </script>
+  <h1>Team Ratings and Preliminary Rankings</h1>
+  <div>
+    <canvas id="preTeamsChart"></canvas>
+  </div>
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    const preTeamsData = [[${pre_points}]];
+    const preSlope = [[${pre_slope}]];
+    const preIntercept = [[${pre_intercept}]];
+
+    // 차트 데이터 생성
+    const preData = {
+      datasets: [{
+        label: 'teams',
+        data: preTeamsData.map(point => ({x: point.first , y: point.second})),
+        backgroundColor: 'blue'
+      }]
+    };
+
+    // 선형 회귀선 데이터 추가
+    const preMaxX = Math.max(...preData.datasets[0].data.map(d => d.x));
+    preData.datasets.push({
+      label: 'Regression Line',
+      data: [{
+        x: 0,
+        y: preIntercept
+      }, {
+        x: preMaxX,
+        y: preMaxX * preSlope + preIntercept
+      }],
+      type: 'line',
+      borderColor: 'red',
+      borderWidth: 2,
+      fill: false
+    });
+
+    // 차트 생성
+    const preCtx = document.getElementById('preTeamsChart').getContext('2d');
+    new Chart(preCtx, {
+      type: 'scatter',
+      data: preData,
+      options: {
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Rank'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Rating'
+            }
+          }
+        }
+      }
+    });
+    /*]]>*/
+  </script>
+</form>
+</body>
+</html>

@@ -1,11 +1,12 @@
-package entity
+package com.example.demo.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
+import jakarta.persistence.Table
 import org.springframework.context.annotation.Primary
-
 @Entity
+@Table(name = "team")
 class TeamEntity (
     @Id
     val name: String,
@@ -14,5 +15,5 @@ class TeamEntity (
     val rank: Int?,
 
     @Column
-    val preliminaryRandk: Int?
+    val preliminaryRank: Int?
 ){}
